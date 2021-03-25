@@ -157,5 +157,6 @@ char *find_pathspecs_matching_against_index(const struct pathspec *pathspec,
 int match_pathspec_attrs(const struct index_state *istate,
 			 const char *name, int namelen,
 			 const struct pathspec_item *item);
+void check_mishandled_exclude(const char* pathspec_entry);
 
 #endif /* PATHSPEC_H */

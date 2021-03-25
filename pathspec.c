@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "cache.h"
 #include "config.h"
 #include "dir.h"
@@ -586,6 +588,8 @@ void parse_pathspec(struct pathspec *pathspec,
 	for (i = 0; i < n; i++) {
 		entry = argv[i];
 
+		check_mishandled_exclude(entry);
+
 		init_pathspec_item(item + i, flags, prefix, prefixlen, entry);
 
 		if (item[i].magic & PATHSPEC_EXCLUDE)
@@ -738,4 +742,19 @@ int match_pathspec_attrs(const struct index_state *istate,
 	}
 
 	return 1;
+}
+
+void check_mishandled_exclude(const char *entry) {
+	size_t entry_len = strlen(entry);
+	char flags[entry_len];
+	char path[entry_len];
+
+	if (sscanf(entry, ":!(%4096[^)])%4096s", &flags, &path) != 2) {
+		return;
+	}
+	if (count_slashes(flags) > 0) {
+		return;
+	}
+
+	warning(_("Pathspec provided matches `:!(...)`\n\tDid you mean `:(exclude,...)`?"));
 }

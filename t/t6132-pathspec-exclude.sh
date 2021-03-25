@@ -244,4 +244,37 @@ test_expect_success 'grep --untracked PATTERN :(exclude)*FILE' '
 	test_cmp expect-grep actual-grep
 '
 
+cat > expected_warn <<"EOF"
+Pathspec provided matches `:!(...)`
+EOF
+test_expect_success 'warn pathspec :!(...) skips the parenthesized magics' '
+	git log --oneline --format=%s -- '"'"':!(glob)**/file'"'"' >actual 2>warn &&
+	cat <<EOF >expect &&
+sub2/file
+sub/sub/sub/file
+sub/file2
+sub/sub/file
+sub/file
+file
+EOF
+	cat actual &&
+	cat warn &&
+	test_cmp expect actual &&
+	grep -Ff expected_warn warn
+'
+
+test_expect_success 'do not warn that pathspec :!(...) skips the parenthesized magics (if parenthesis would not be part of the magic)' '
+	git log --oneline --format=%s -- '"'"':!(gl/ob)/file'"'"' >actual 2>warn &&
+	cat <<EOF >expect &&
+sub2/file
+sub/sub/sub/file
+sub/file2
+sub/sub/file
+sub/file
+file
+EOF
+	test_cmp expect actual &&
+	! grep -Ff expected_warn warn
+'
+
 test_done
