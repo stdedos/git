@@ -1,3 +1,4 @@
+#include <string.h>
 #include "cache.h"
 #include "config.h"
 #include "dir.h"
@@ -588,6 +589,8 @@ void parse_pathspec(struct pathspec *pathspec,
 
 		init_pathspec_item(item + i, flags, prefix, prefixlen, entry);
 
+		check_missing_glob(entry, item[i].magic);
+
 		if (item[i].magic & PATHSPEC_EXCLUDE)
 			nr_exclude++;
 		if (item[i].magic & magic_mask)
@@ -738,4 +741,14 @@ int match_pathspec_attrs(const struct index_state *istate,
 	}
 
 	return 1;
+}
+
+void check_missing_glob(const char *pathspec_entry, int flags) {
+	if (flags & (PATHSPEC_GLOB | PATHSPEC_LITERAL)) {
+		return;
+	}
+
+	if (strstr(pathspec_entry, "**")) {
+		warning(_("Pathspec provided contains `**`, but no :(glob) magic.\nIt will not match 0 or more directories!"));
+	}
 }

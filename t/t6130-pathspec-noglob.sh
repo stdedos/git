@@ -157,4 +157,17 @@ test_expect_success '**/ does not work with :(literal) and --glob-pathspecs' '
 	test_must_be_empty actual
 '
 
+cat > expected <<"EOF"
+warning: Pathspec provided contains `**`, but no :(glob) magic.
+EOF
+test_expect_success '** without :(glob) warns of lacking glob magic' '
+	test_might_fail git stash -- "**/bar" 2>warns &&
+	grep -Ff expected warns
+'
+
+test_expect_success '** with :(literal) does not warn of lacking glob magic' '
+	test_might_fail git stash -- ":(literal)**/bar" 2>warns &&
+	! grep -Ff expected warns
+'
+
 test_done
