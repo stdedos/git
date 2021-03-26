@@ -1,4 +1,4 @@
-#include <string.h>
+#include "git-compat-util.h"
 #include "cache.h"
 #include "config.h"
 #include "dir.h"
@@ -744,11 +744,13 @@ int match_pathspec_attrs(const struct index_state *istate,
 }
 
 void check_missing_glob(const char *pathspec_entry, int flags) {
+	const char *advice = NULL;
 	if (flags & (PATHSPEC_GLOB | PATHSPEC_LITERAL)) {
 		return;
 	}
 
+	advice = _("Pathspec provided contains `**`, but no :(glob) magic.\nIt will not match 0 or more directories!");
 	if (strstr(pathspec_entry, "**")) {
-		warning(_("Pathspec provided contains `**`, but no :(glob) magic.\nIt will not match 0 or more directories!"));
+		advise_if_enabled(ADVICE_STAR_STAR_NO_GLOB_PATHSPEC, advice);
 	}
 }

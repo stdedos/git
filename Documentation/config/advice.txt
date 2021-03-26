@@ -119,4 +119,8 @@ advice.*::
 	addEmptyPathspec::
 		Advice shown if a user runs the add command without providing
 		the pathspec parameter.
+	starStarNoGlobPathspec::
+		Advice shown if a user provides a pathspec via the terminal
+		that contains `**`, anticipating that the pattern will be
+		matched using wildmatch (aka `:(glob)` magic).
 --

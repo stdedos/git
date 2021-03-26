@@ -158,7 +158,9 @@ test_expect_success '**/ does not work with :(literal) and --glob-pathspecs' '
 '
 
 cat > expected <<"EOF"
-warning: Pathspec provided contains `**`, but no :(glob) magic.
+hint: Pathspec provided contains `**`, but no :(glob) magic.
+hint: It will not match 0 or more directories!
+hint: Disable this message with "git config advice.starStarNoGlobPathspec false"
 EOF
 test_expect_success '** without :(glob) warns of lacking glob magic' '
 	test_might_fail git stash -- "**/bar" 2>warns &&
