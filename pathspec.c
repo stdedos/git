@@ -7,6 +7,7 @@
 #include "attr.h"
 #include "strvec.h"
 #include "quote.h"
+#include "git-compat-util.h"
 
 /*
  * Finds which of the given pathspecs match items in the index.
@@ -745,16 +746,20 @@ int match_pathspec_attrs(const struct index_state *istate,
 }
 
 void check_mishandled_exclude(const char *entry) {
+	char *flags, *path;
 	size_t entry_len = strlen(entry);
-	char flags[entry_len];
-	char path[entry_len];
 
-	if (sscanf(entry, ":!(%4096[^)])%4096s", &flags, &path) != 2) {
-		return;
-	}
-	if (count_slashes(flags) > 0) {
-		return;
+	flags = xstrdup(entry);
+	memset(flags, '\0', entry_len);
+	path = xstrdup(entry);
+	memset(path, '\0', entry_len);
+
+	if (sscanf(entry, ":!(%4096[^)])%4096s", flags, path) == 2) {
+		if (count_slashes(flags) == 0) {
+			warning(_("Pathspec provided matches `:!(...)`\n\tDid you mean `:(exclude,...)`?"));
+		}
 	}
 
-	warning(_("Pathspec provided matches `:!(...)`\n\tDid you mean `:(exclude,...)`?"));
+	FREE_AND_NULL(flags);
+	FREE_AND_NULL(path);
 }
