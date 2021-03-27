@@ -389,9 +389,11 @@ static const char *parse_element_magic(unsigned *magic, int *prefix_len,
 	else if (elem[1] == '(')
 		/* longhand */
 		return parse_long_magic(magic, prefix_len, item, elem);
-	else
+	else {
 		/* shorthand */
+		check_mixed_short_and_long_magic(elem);
 		return parse_short_magic(magic, elem);
+	}
 }
 
 /*
@@ -589,8 +591,6 @@ void parse_pathspec(struct pathspec *pathspec,
 	for (i = 0; i < n; i++) {
 		entry = argv[i];
 
-		check_mishandled_exclude(entry);
-
 		init_pathspec_item(item + i, flags, prefix, prefixlen, entry);
 
 		if (item[i].magic & PATHSPEC_EXCLUDE)
@@ -745,21 +745,24 @@ int match_pathspec_attrs(const struct index_state *istate,
 	return 1;
 }
 
-void check_mishandled_exclude(const char *entry) {
-	char *flags, *path;
-	size_t entry_len = strlen(entry);
+void check_mixed_short_and_long_magic(const char *entry) {
+	const char *parsed_magic;
 
-	flags = xstrdup(entry);
-	memset(flags, '\0', entry_len);
-	path = xstrdup(entry);
-	memset(path, '\0', entry_len);
-
-	if (sscanf(entry, ":!(%4096[^)])%4096s", flags, path) == 2) {
-		if (count_slashes(flags) == 0) {
-			warning(_("Pathspec provided matches `:!(...)`\n\tDid you mean `:(exclude,...)`?"));
-		}
+	/* skip past stuff we know must be there */
+	if (!skip_prefix(entry, ":", &entry)) {
+		return;
 	}
 
-	FREE_AND_NULL(flags);
-	FREE_AND_NULL(path);
+	/* Throwaway allocations */
+	unsigned magic = 0;
+	int prefix_len = -1;
+	struct pathspec_item *item;
+	item = xmallocz(sizeof(&item));
+
+	parsed_magic = parse_long_magic(&magic, &prefix_len, item, entry);
+	if (entry != parsed_magic) {
+		warning(_("Pathspec provided matches both short and long forms.\nShort forms take presedence over long forms!"));
+	}
+
+	FREE_AND_NULL(item);
 }

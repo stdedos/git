@@ -245,7 +245,7 @@ test_expect_success 'grep --untracked PATTERN :(exclude)*FILE' '
 '
 
 cat > expected_warn <<"EOF"
-Pathspec provided matches `:!(...)`
+Pathspec provided matches both short and long forms.
 EOF
 test_expect_success 'warn pathspec :!(...) skips the parenthesized magics' '
 	git log --oneline --format=%s -- '"'"':!(glob)**/file'"'"' >actual 2>warn &&
@@ -263,7 +263,7 @@ EOF
 	grep -Ff expected_warn warn
 '
 
-test_expect_success 'do not warn that pathspec :!(...) skips the parenthesized magics (if parenthesis would not be part of the magic)' '
+test_expect_success 'do not warn that pathspec :!(...) skips the parenthesized magics (if parenthesized text would not be magic)' '
 	git log --oneline --format=%s -- '"'"':!(gl/ob)/file'"'"' >actual 2>warn &&
 	cat <<EOF >expect &&
 sub2/file
