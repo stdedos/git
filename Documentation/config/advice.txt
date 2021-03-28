@@ -119,4 +119,7 @@ advice.*::
 	addEmptyPathspec::
 		Advice shown if a user runs the add command without providing
 		the pathspec parameter.
+	mixedPathspecMagic::
+		Advice shown if a user tries to mix short- and
+		longform pathspec magic.
 --

@@ -244,4 +244,42 @@ test_expect_success 'grep --untracked PATTERN :(exclude)*FILE' '
 	test_cmp expect-grep actual-grep
 '
 
+cat > expected_warn <<"EOF"
+hint: ':!(...': cannot mix short- and longform pathspec magic!
+hint: Either spell the shortform magic '!' as ':(exclude,...'
+hint: or end magic pathspec matching with ':!:'.
+hint: Disable this message with "git config advice.mixedPathspecMagic false"
+EOF
+test_expect_success 'warn pathspec not matching longform magic in :!(...)' '
+	git log --oneline --format=%s -- '"'"':!(glob)**/file'"'"' >actual 2>warn &&
+	cat <<EOF >expect &&
+sub2/file
+sub/sub/sub/file
+sub/file2
+sub/sub/file
+sub/file
+file
+EOF
+	cat actual &&
+	cat warn &&
+	test_cmp expect actual &&
+	test_cmp expected_warn warn
+'
+
+test_expect_success 'do not warn pathspec not matching longform magic in :!:(...) (i.e. if magic parsing is explicitly stopped)' '
+	git log --oneline --format=%s -- '"'"':!:(glob)**/file'"'"' >actual 2>warn &&
+	cat <<EOF >expect &&
+sub2/file
+sub/sub/sub/file
+sub/file2
+sub/sub/file
+sub/file
+file
+EOF
+	cat actual &&
+	cat warn &&
+	test_cmp expect actual &&
+	! test_cmp expected_warn warn
+'
+
 test_done

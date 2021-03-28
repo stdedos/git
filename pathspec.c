@@ -336,6 +336,36 @@ static const char *parse_long_magic(unsigned *magic, int *prefix_len,
 	return pos;
 }
 
+
+/*
+ * Give hint for a common mistake of mixing short and long
+ * form of pathspec magic, as well as possible corrections
+ */
+static void warn_mixed_magic(unsigned magic, const char *elem, const char *pos)
+{
+	struct strbuf longform = STRBUF_INIT;
+	int i;
+
+	if (!advice_enabled(ADVICE_MIXED_PATHSPEC_MAGIC))
+		return;
+
+	for (i = 0; i < ARRAY_SIZE(pathspec_magic); i++) {
+		if (pathspec_magic[i].bit & magic) {
+			if (longform.len)
+				strbuf_addch(&longform, ',');
+			strbuf_addstr(&longform, pathspec_magic[i].name);
+		}
+	}
+	advise_if_enabled(ADVICE_MIXED_PATHSPEC_MAGIC,
+	                  _("'%.*s(...': cannot mix short- and longform pathspec magic!\n"
+	                    "Either spell the shortform magic '%.*s' as ':(%s,...'\n"
+	                    "or end magic pathspec matching with '%.*s:'."),
+	                  (int)(pos - elem), elem,
+	                  (int)(pos - (elem + 1)), elem + 1,
+	                  longform.buf,
+	                  (int)(pos - elem), elem);
+}
+
 /*
  * Parse the pathspec element looking for short magic
  *
@@ -355,6 +385,9 @@ static const char *parse_short_magic(unsigned *magic, const char *elem)
 			*magic |= PATHSPEC_EXCLUDE;
 			continue;
 		}
+
+		if (ch == '(')
+			warn_mixed_magic(*magic, elem, pos);
 
 		if (!is_pathspec_magic(ch))
 			break;

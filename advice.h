@@ -33,6 +33,7 @@ extern int advice_checkout_ambiguous_remote_branch_name;
 extern int advice_submodule_alternate_error_strategy_die;
 extern int advice_add_ignored_file;
 extern int advice_add_empty_pathspec;
+extern int advice_mixed_pathspec_magic;
 
 /*
  * To add a new advice, you need to:
@@ -72,6 +73,7 @@ extern int advice_add_empty_pathspec;
 	ADVICE_STATUS_U_OPTION,
 	ADVICE_SUBMODULE_ALTERNATE_ERROR_STRATEGY_DIE,
 	ADVICE_WAITING_FOR_EDITOR,
+	ADVICE_MIXED_PATHSPEC_MAGIC,
 };
 
 int git_default_advice_config(const char *var, const char *value);
